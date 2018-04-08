@@ -5,6 +5,8 @@
  */
 package nenlineaBackend;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author ubau-
@@ -20,13 +22,15 @@ public class Nenlinea {
     public int jugadaX;
     public int jugadaY;
     public int gana;
-    public String[] chat;
-
+    public ArrayList<String> chat;
+    public String tipoJuego;
+    public String dificultad;
+    
+    
     public Nenlinea() {
     }
-        
-    
-    public Nenlinea(String descrip, String id, String jugador1, String jugador2, String tam, Ficha[][] matriz, int jugadaX, int jugadaY, int gana, String[] chat) {
+
+    public Nenlinea(String descrip, String id, String jugador1, String jugador2, String tam, Ficha[][] matriz, int jugadaX, int jugadaY, int gana, ArrayList<String> chat, String tipoJuego, String dificultad) {
         this.descrip = descrip;
         this.id = id;
         this.jugador1 = jugador1;
@@ -37,7 +41,28 @@ public class Nenlinea {
         this.jugadaY = jugadaY;
         this.gana = gana;
         this.chat = chat;
+        this.tipoJuego = tipoJuego;
+        this.dificultad = dificultad;
     }
+
+    public String getTipoJuego() {
+        return tipoJuego;
+    }
+
+    public String getDificultad() {
+        return dificultad;
+    }
+
+    public void setTipoJuego(String tipoJuego) {
+        this.tipoJuego = tipoJuego;
+    }
+
+    public void setDificultad(String dificultad) {
+        this.dificultad = dificultad;
+    }
+        
+    
+    
 
     public void setDescrip(String descrip) {
         this.descrip = descrip;
@@ -75,9 +100,7 @@ public class Nenlinea {
         this.gana = gana;
     }
 
-    public void setChat(String[] chat) {
-        this.chat = chat;
-    }
+  
 
     public String getDescrip() {
         return descrip;
@@ -115,9 +138,15 @@ public class Nenlinea {
         return gana;
     }
 
-    public String[] getChat() {
+    public ArrayList<String> getChat() {
         return chat;
     }
+
+    public void setChat(ArrayList<String> chat) {
+        this.chat = chat;
+    }
+
+    
     
     
 

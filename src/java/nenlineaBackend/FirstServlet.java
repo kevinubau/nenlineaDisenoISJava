@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 public class FirstServlet extends HttpServlet {
     
     static ArrayList<HttpServlet> solicitudes;
-    ArrayList<Nenlinea> juegos = new ArrayList();
+    static ArrayList<Nenlinea> juegos = new ArrayList();
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -102,8 +102,8 @@ public class FirstServlet extends HttpServlet {
                         System.out.println("  ACTUALIZAR CHAT");
                         
                         out.println(actualizarChat(obj));
-                        String json = gson.toJson(actualizarChat(obj));
-                        System.out.println("RESPONSE ACTUALIZARCHAT: "+json);
+                        //String json = gson.toJson(actualizarChat(obj));
+                        //System.out.println("RESPONSE ACTUALIZARCHAT: "+json);
                     }
                     
                     else if(obj.matriz == null){
@@ -111,12 +111,19 @@ public class FirstServlet extends HttpServlet {
                         //obj.setMatriz(generarMatrizInicialPost(obj.tam));
                         
                         String id = String.valueOf(juegos.size()+1);
-                        String jugador1 = obj.jugador1;
-                        //String jugador2 = obj.jugador2;
+                        String jugador1 = obj.jugador1;                        
                         String tam = obj.tam;
-                        String[] chatPrueba = {"Server: Bienvenidos!"};
+                        ArrayList<String> chatPrueba = new ArrayList();// {"Server: Bienvenidos!"};
+                        chatPrueba.add("Server: Bienvenidos!");
+                        String tipoJuego= "usuario";
+                        String jugador2 = "";
+                        if(!obj.tipoJuego.equals("usuario")){
+                            tipoJuego=obj.tipoJuego;
+                            jugador2 = "PC";
                         
-                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, "", tam, null, 0, 0, 0, chatPrueba);
+                        }
+                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, jugador2, tam, null, 0, 0, 0, chatPrueba, tipoJuego, "");
+                        
                         juego.setMatriz(generarMatrizInicialPost(obj.tam));
                         juego.setChat(chatPrueba);
                         juegos.add(juego);
@@ -283,10 +290,10 @@ public class FirstServlet extends HttpServlet {
             if(juego.id.equals(req.id)){
                 
                 
-                juego.chat = req.chat;
-                System.out.println("========================================");
-                System.out.println(Arrays.toString(juegos.toArray()));
-                System.out.println("========================================");
+                juego.chat.add(req.chat.get(req.chat.size()-1));
+                //System.out.println("========================================");
+                //System.out.println(Arrays.toString(juegos.toArray()));
+                //System.out.println("========================================");
                 json = gson.toJson(juego);
                 
                 return json;
