@@ -25,12 +25,13 @@ public class Nenlinea {
     public ArrayList<String> chat;
     public String tipoJuego;
     public String dificultad;
+    public int turno;
     
     
     public Nenlinea() {
     }
 
-    public Nenlinea(String descrip, String id, String jugador1, String jugador2, String tam, Ficha[][] matriz, int jugadaX, int jugadaY, int gana, ArrayList<String> chat, String tipoJuego, String dificultad) {
+    public Nenlinea(String descrip, String id, String jugador1, String jugador2, String tam, Ficha[][] matriz, int jugadaX, int jugadaY, int gana, ArrayList<String> chat, String tipoJuego, String dificultad, int turno) {
         this.descrip = descrip;
         this.id = id;
         this.jugador1 = jugador1;
@@ -43,7 +44,10 @@ public class Nenlinea {
         this.chat = chat;
         this.tipoJuego = tipoJuego;
         this.dificultad = dificultad;
+        this.turno = turno;
     }
+
+    
 
     public String getTipoJuego() {
         return tipoJuego;

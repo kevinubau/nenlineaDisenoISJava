@@ -60,8 +60,6 @@ public class FirstServlet extends HttpServlet {
                     System.out.println(" SOLICITUD DE LISTA DE JUEGOS!!");
                     out.println(Arrays.toString(postListaJuegos()));
                 }
-                //verificarJugador2EnJuego
-                
                
                 
                 else{
@@ -117,12 +115,15 @@ public class FirstServlet extends HttpServlet {
                         chatPrueba.add("Server: Bienvenidos!");
                         String tipoJuego= "usuario";
                         String jugador2 = "";
+                        String dificultad = "";
                         if(!obj.tipoJuego.equals("usuario")){
                             tipoJuego=obj.tipoJuego;
                             jugador2 = "PC";
+                            dificultad = obj.dificultad;
+                            
                         
                         }
-                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, jugador2, tam, null, 0, 0, 0, chatPrueba, tipoJuego, "");
+                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, jugador2, tam, null, 0, 0, 0, chatPrueba, tipoJuego, dificultad, 1);
                         
                         juego.setMatriz(generarMatrizInicialPost(obj.tam));
                         juego.setChat(chatPrueba);
@@ -341,10 +342,10 @@ public class FirstServlet extends HttpServlet {
         
         for(Nenlinea juego : juegos) {
             
-            if(juego.id == req.id){// && !"".equals(juego.jugador2)){
+            if(juego.id.equals(req.id) && "".equals(juego.jugador2)){// && !"".equals(juego.jugador2)){
                 
                 
-                juego.jugador2="prueba";
+                //juego.jugador2="prueba";
                 json = gson.toJson(juego);
                 return json;
                 
@@ -408,14 +409,20 @@ public class FirstServlet extends HttpServlet {
         obj.matriz = votearMatrizHaciaOriginal(tam, diagonalInferior(3, girarMatriz(tam, obj.matriz))); //validar diagonal inferior inversa \
         
         obj= verificarGane(obj);// si encuentra al menos una ficha con el color de gane, entonces cambiara a 1 el atributo .gana en el json
-        
+        if(obj.turno == 1){
+            obj.turno = 2;
+        }
+        else{
+            obj.turno = 1;
+        }
         
         for(Nenlinea juego : juegos) {
             
             if(juego.id.equals(obj.id)){
                 
                 
-                juego.matriz = obj.matriz; 
+                juego.matriz = obj.matriz;
+                juego.turno = obj.turno;
                 //juego.chat=obj.chat;
                 break;
                 
