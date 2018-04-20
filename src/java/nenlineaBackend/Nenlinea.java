@@ -44,10 +44,8 @@ public class Nenlinea {
         this.chat = chat;
         this.tipoJuego = tipoJuego;
         this.dificultad = dificultad;
-        this.turno = turno;
+        this.turno=1;
     }
-
-    
 
     public String getTipoJuego() {
         return tipoJuego;
@@ -104,8 +102,16 @@ public class Nenlinea {
         this.gana = gana;
     }
 
+
+    public void setTurno(int turno) {
+        this.turno = turno;
+    }
+
   
 
+    public int getTurno() {
+        return turno;
+    }
     public String getDescrip() {
         return descrip;
     }
