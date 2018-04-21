@@ -23,8 +23,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FirstServlet extends HttpServlet {
     
-    static ArrayList<HttpServlet> solicitudes;
     static ArrayList<Nenlinea> juegos = new ArrayList();
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -382,20 +382,36 @@ public class FirstServlet extends HttpServlet {
         juegos.add(j1);
         juegos.add(j2);
         */
-        String[] array = new String[juegos.size()];
-        
         int cont = 0;
-        Gson gson = new Gson();
-
-        
-        for (Nenlinea juego : juegos) {
-            String json = gson.toJson(juego);
-            array[cont] = json;
-            cont++;
+        for(Nenlinea juego : juegos) {
+            if("".equals(juego.jugador2)){
+                cont++;
+            }
         }
-        System.out.println(Arrays.toString(array)+" ARRAY ");
+        String[] array = new String[cont];
+        
+        
+        Gson gson = new Gson();
+        boolean flag = false;
+        cont =0;
+        System.out.println(Arrays.toString(array)+" ARRAY1 ");
+        for (Nenlinea juego : juegos) {
+            System.out.println("Lo que hay: "+juego.tipoJuego);
+            if("".equals(juego.jugador2)){
+                flag = true;
+                System.out.println("IF post lista juegos");
+                String json = gson.toJson(juego);
+                array[cont] = json;
+                cont++;
+            }
+            
+        }
+        
+        
+        System.out.println(Arrays.toString(array)+" ARRAY2 ");
+        
         return array;
-    }
+    } 
     public Ficha [][]turno2(Nenlinea mat){
         System.out.println("ENtra a turno 2");
         if (mat.jugador2.equals("PC")&&mat.turno==2){
