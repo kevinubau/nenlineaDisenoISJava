@@ -43,8 +43,10 @@ public class FirstServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
-        Conector con=new Conector();
-        con.Conectar();
+        
+        
+        
+        
         verificarJuego();
         System.out.println(" //////////////////////////////////////////////////////////////////");
         response.setContentType("text/plain;charset=UTF-8");
@@ -172,6 +174,8 @@ public class FirstServlet extends HttpServlet {
             
         }
     }
+    
+
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -234,7 +238,18 @@ public class FirstServlet extends HttpServlet {
       resp.setHeader("Access-Control-Allow-Origin", "*");
       resp.setHeader("Access-Control-Allow-Methods", "POST, GET");
     }
-   
+    public void enviarInsert() throws SQLException{
+       boolean bandera=false;
+        if (bandera==false){
+            
+            String idJuego="8";
+            String dato="eeee, eewefwe, qq, wefwef";
+            Conector con=new Conector();
+            con.Conectar();
+            con.insertarBD(idJuego,dato);
+            bandera=true;
+        }
+   }
     
     public Ficha[][] generarMatrizInicialPost(String n) {//Generar matriz inicial
         int a = Integer.parseInt(n);

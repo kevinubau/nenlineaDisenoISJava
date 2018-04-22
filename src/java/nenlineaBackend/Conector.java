@@ -28,10 +28,16 @@ public class Conector {
         String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
              String user ="postgres";
              String pass = "12345";
+             String name="ssd, Azofeifa, auron, 1234";
+             
               try {
                   Class.forName("org.postgresql.Driver");
                   Connection conex = DriverManager.getConnection(cadena,user,pass);
                   java.sql.Statement st = conex.createStatement();
+                  
+                  Statement consulta = (Statement) conex.createStatement();
+                //consulta.executeUpdate("insert into juego values('{" + name +"}')");
+                
                   String sql =
                       "SELECT * FROM juego ";
                   ResultSet result = st.executeQuery(sql);
@@ -76,5 +82,21 @@ public class Conector {
         return this.conector;
                
     }
+    public void insertarBD(String id,String dato) throws SQLException{
+        String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
+        String user ="postgres";
+        String pass = "12345";
+        //String dato="Kepa, Izabiz, kep, ki12";
+        Connection conex = DriverManager.getConnection(cadena,user,pass);
+        java.sql.Statement st = conex.createStatement();
+                  
+                  
+        Statement consulta = (Statement) conex.createStatement();
+        consulta.executeUpdate("insert into juego values('"+id+"','{"+dato+"}')");
+//        consulta.executeUpdate("insert into juego values('id+","+{" + dato +"}')");
+//                                ('1','{Emilio, Bermudez, siuuu, e10000}');
+    }
+    
+    
     
 }
