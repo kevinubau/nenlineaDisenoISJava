@@ -5,15 +5,10 @@
  */
 package nenlineaBackend;
 import com.google.gson.Gson;
-import com.sun.net.httpserver.HttpServer;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
+import java.io.PrintWriter; 
 import java.util.ArrayList;
 import java.util.Arrays;
 import javax.servlet.ServletException;
@@ -362,13 +357,13 @@ public class FirstServlet extends HttpServlet {
         
         
         Gson gson = new Gson();
-        boolean flag = false;
+        
         cont =0;
         //System.out.println(Arrays.toString(array)+" ARRAY1 ");
         for (Nenlinea juego : juegos) {
             
             if("".equals(juego.jugador2)){
-                flag = true;
+                
                 
                 String json = gson.toJson(juego);
                 array[cont] = json;
@@ -382,14 +377,14 @@ public class FirstServlet extends HttpServlet {
         
         return array;
     } 
-    public Ficha [][]turno2(Nenlinea mat){
+    public Ficha [][]turno2(Nenlinea obj){
         
-        if (mat.jugador2.equals("PC")&&mat.turno==2){
+        if (obj.jugador2.equals("PC")&&obj.turno==2){
             
-            mat.jugadaY=nivelFacil(Integer.parseInt(mat.tam));
-            return mat.matriz;
+            obj.jugadaY=nivelFacil(Integer.parseInt(obj.tam));
+            return obj.matriz;
         }
-        return mat.matriz;
+        return obj.matriz;
     }
     
     
@@ -399,7 +394,7 @@ public class FirstServlet extends HttpServlet {
         String json;
         for(Nenlinea juego : juegos) {
             
-            if (juego.jugador2.equals("PC") &&juego.turno==2){
+            if (juego.jugador2.equals("PC") && juego.turno==2){
                 juego.matriz=turno2(juego);
                 json = gson.toJson(juego);
                 validarPOST(json);
@@ -707,7 +702,7 @@ public class FirstServlet extends HttpServlet {
                     listaFichas.clear();
                 }
                 
-                if(contFichas == 3)
+                if(contFichas == fichasParaGanar)
                 {
                    
                     return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz, turno);
