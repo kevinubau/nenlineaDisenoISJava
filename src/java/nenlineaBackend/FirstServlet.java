@@ -10,8 +10,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,9 +39,12 @@ public class FirstServlet extends HttpServlet {
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
+     * @throws java.sql.SQLException
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, SQLException {
+        Conector con=new Conector();
+        con.Conectar();
         verificarJuego();
         System.out.println(" //////////////////////////////////////////////////////////////////");
         response.setContentType("text/plain;charset=UTF-8");
@@ -180,7 +189,11 @@ public class FirstServlet extends HttpServlet {
         setAccessControlHeaders(response);
         PrintWriter writer = response.getWriter();
         writer.write("test response from myServlet");
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (SQLException ex) {
+            Logger.getLogger(FirstServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
 
@@ -199,8 +212,11 @@ public class FirstServlet extends HttpServlet {
         setAccessControlHeaders(response);
         //PrintWriter writer = response.getWriter();
         //writer.write("test response from myServlet");
-        
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (SQLException ex) {
+            Logger.getLogger(FirstServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
 
@@ -218,6 +234,7 @@ public class FirstServlet extends HttpServlet {
       resp.setHeader("Access-Control-Allow-Origin", "*");
       resp.setHeader("Access-Control-Allow-Methods", "POST, GET");
     }
+   
     
     public Ficha[][] generarMatrizInicialPost(String n) {//Generar matriz inicial
         int a = Integer.parseInt(n);
