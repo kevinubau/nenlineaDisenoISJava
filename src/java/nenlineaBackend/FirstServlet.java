@@ -5,11 +5,15 @@
  */
 package nenlineaBackend;
 import com.google.gson.Gson;
-
+import com.sun.net.httpserver.HttpServer;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import javax.servlet.ServletException;
@@ -47,9 +51,12 @@ public class FirstServlet extends HttpServlet {
             try (BufferedReader input = new BufferedReader(new InputStreamReader(request.getInputStream()))) {
                 String line;
                 line = input.readLine();
-                //System.out.println("REQUEST: "+line);
                 
-
+                
+                //System.out.println(" REQUEST: "+line);
+                //System.out.println(convertUTF8toISO(line));
+                line = convertUTF8toISO(line);
+                //System.out.println("REQUEST AFTER: "+line);
                 if(line == null){
                     System.out.println("request is null!!");
                     
@@ -113,6 +120,7 @@ public class FirstServlet extends HttpServlet {
                         String tipoJuego= "usuario";
                         String jugador2 = "";
                         String dificultad="";
+                        int cantFichasParaGanar = obj.cantFichasParaGanar;
                         
                         if(!obj.tipoJuego.equals("usuario")){
                             
@@ -122,14 +130,14 @@ public class FirstServlet extends HttpServlet {
                         
                         }
                         
-                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, jugador2, tam, null, 0, 0, 0, chatPrueba, tipoJuego, dificultad, 1);
+                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, jugador2, tam, null, 0, 0, 0, chatPrueba, tipoJuego, dificultad, 1, cantFichasParaGanar);
                         
                         juego.setMatriz(generarMatrizInicialPost(obj.tam));
                         juego.setChat(chatPrueba);
                         juegos.add(juego);
                         
                         String json = gson.toJson(juego);
-                        //System.out.println("RESPONSE CREAR: "+json);
+                        System.out.println("RESPONSE CREAR: "+json);
                         out.println(json);
                      
                     }
@@ -148,6 +156,18 @@ public class FirstServlet extends HttpServlet {
             
         }
     }
+    
+    
+    public static String convertUTF8toISO(String str) {
+	String ret = null;
+	try {
+		ret = new String(str.getBytes("ISO-8859-1"), "UTF-8");
+	}
+	catch (java.io.UnsupportedEncodingException e) {
+		return null;
+	}
+	return ret;
+}
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -181,11 +201,13 @@ public class FirstServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        
         setAccessControlHeaders(response);
         processRequest(request, response);
         
     }
-
+    
+   
     /**
      * Returns a short description of the servlet.
      *
@@ -400,16 +422,16 @@ public class FirstServlet extends HttpServlet {
         
 
         //VERTICAL **
-        obj.matriz = votearMatrizHaciaOriginal(tam, vertical(tam, girarMatriz(tam, obj.matriz)));//para verificar si hay gane en vertical
+        obj.matriz = votearMatrizHaciaOriginal(tam, vertical(tam, girarMatriz(tam, obj.matriz), obj.cantFichasParaGanar, obj.turno));//para verificar si hay gane en vertical
 
         //HORIZONTAL **
-        obj.matriz = vertical(tam, obj.matriz);//para verificar si hay gane en horizontal last,08:20AM 19/03
+        obj.matriz = vertical(tam, obj.matriz, obj.cantFichasParaGanar, obj.turno);//para verificar si hay gane en horizontal last,08:20AM 19/03
 
         //DIAGONALES **
-        obj.matriz = diagonalSuperior(3, obj.matriz);//validar diagonal superior normal /
-        obj.matriz = diagonalInferior(3, obj.matriz);//validar diagonal inferior normal /
-        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalSuperior(3, girarMatriz(tam, obj.matriz))); //validar diagonal superior inversa \
-        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalInferior(3, girarMatriz(tam, obj.matriz))); //validar diagonal inferior inversa \
+        obj.matriz = diagonalSuperior(obj.cantFichasParaGanar, obj.matriz, obj.turno);//validar diagonal superior normal /
+        obj.matriz = diagonalInferior(obj.cantFichasParaGanar, obj.matriz, obj.turno);//validar diagonal inferior normal /
+        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalSuperior(obj.cantFichasParaGanar, girarMatriz(tam, obj.matriz), obj.turno)); //validar diagonal superior inversa \
+        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalInferior(obj.cantFichasParaGanar, girarMatriz(tam, obj.matriz), obj.turno)); //validar diagonal inferior inversa \
         
         //VALIDAR GANE **
         obj= verificarGane(obj);// si encuentra al menos una ficha con el color de gane, entonces cambiara a 1 el atributo .gana en el json
@@ -531,7 +553,7 @@ public class FirstServlet extends HttpServlet {
     
     }  
     
-    public Ficha[][] vertical(int tam, Ficha[][] matriz){
+    public Ficha[][] vertical(int tam, Ficha[][] matriz, int cantFichasParaGanar, int turno){
         int cont = 0;
         ArrayList<Ficha> fichasGanadoras = new ArrayList();
         for(Ficha[] fila:matriz){
@@ -539,22 +561,23 @@ public class FirstServlet extends HttpServlet {
          
 
             for(Ficha ficha:fila){
-                if(ficha.status==2){
+                if(ficha.status==turno){//2
                     cont++;
                     
                     fichasGanadoras.add(ficha);
                     
                     
                 }
+                
                 else{
                     cont=0;
                     fichasGanadoras.clear();
                     
                 }
                 
-                if(cont == 4){
+                if(cont == cantFichasParaGanar){
                     for(Ficha fich:fichasGanadoras){
-                        fich.status = 4;
+                        fich.status = turno+2;//4
                         for(Ficha[] fi:matriz){
                             
                             for(Ficha f:fi){
@@ -577,30 +600,30 @@ public class FirstServlet extends HttpServlet {
         return matriz;
     }
     
-    public Ficha[][] auxDiagonal(int contGane, int fichasParaGanar, ArrayList<Ficha> listaFichas, Ficha[][] matriz){
+    public Ficha[][] auxDiagonal(int contGane, int fichasParaGanar, ArrayList<Ficha> listaFichas, Ficha[][] matriz, int turno){
         
         if(contGane == fichasParaGanar){
-            
-                 
-                    for(Ficha fich:listaFichas){
-                        fich.status = 4;
-                        for(Ficha[] fi:matriz){
+
+            for(Ficha fich:listaFichas){
+                fich.status = turno+2;//ej si es 1(1+2=3 [gana el jugador 1])
+                for(Ficha[] fi:matriz){
+
+                    for(Ficha f:fi){
                             
-                            for(Ficha f:fi){
-                                
-                                if(fich.posicionX == f.posicionX && fich.posicionY == f.posicionY){
-                                    f.status = fich.status;
-                                }
-                            }
+                        if(fich.posicionX == f.posicionX && fich.posicionY == f.posicionY){
+                            f.status = fich.status;
                         }
                     }
-                    return matriz;
+                }
+            }
+            return matriz;
              
-             }
+        }
+        
         return matriz;
     }
         
-    public Ficha[][] diagonalSuperior(int fichasParaGanar, Ficha[][] matriz){
+    public Ficha[][] diagonalSuperior(int fichasParaGanar, Ficha[][] matriz, int turno){
         int tam = matriz.length;
         int posX = 0;
         int posY;
@@ -617,7 +640,7 @@ public class FirstServlet extends HttpServlet {
             
             while (auxPosX >= 0) {
                 
-                if(matriz[auxPosX][posY].status == 2)
+                if(matriz[auxPosX][posY].status == turno)
                 {
                     contFichas++;
                     listaFichas.add(matriz[auxPosX][posY]);
@@ -631,11 +654,11 @@ public class FirstServlet extends HttpServlet {
                             
                 }
                 
-                if(contFichas == 3)
+                if(contFichas == fichasParaGanar)
                 {
                  
 
-                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz);
+                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz, turno);
                     
                 }
                 posY++;
@@ -650,7 +673,7 @@ public class FirstServlet extends HttpServlet {
         
     }
     
-    public Ficha[][] diagonalInferior(int fichasParaGanar, Ficha[][] matriz ){
+    public Ficha[][] diagonalInferior(int fichasParaGanar, Ficha[][] matriz, int turno){
         int tam = matriz.length;
         ArrayList<Ficha> listaFichas = new ArrayList();
         int posX = tam-1;
@@ -671,7 +694,7 @@ public class FirstServlet extends HttpServlet {
             
             while (auxPosY <= tam-1) {
                 
-                if(matriz[auxPosX][auxPosY].status == 2)
+                if(matriz[auxPosX][auxPosY].status == turno)//2
                 {
                     listaFichas.add(matriz[auxPosX][auxPosY]);
                     contFichas++;
@@ -687,7 +710,7 @@ public class FirstServlet extends HttpServlet {
                 if(contFichas == 3)
                 {
                    
-                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz);
+                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz, turno);
                     
                 }
                 auxPosY++;
@@ -706,13 +729,15 @@ public class FirstServlet extends HttpServlet {
           
 
             for(Ficha ficha:fila){
-                if(ficha.status==3 || ficha.status==4){
-                    json.gana=2;//esto debe ser una variable y no una constante
+                if(ficha.status==3){
+                    json.gana=1;//esto debe ser una variable y no una constante
                     return json;
-                    
-                    
-                    
-                    
+
+                }
+                else if(ficha.status == 4){
+                    json.gana = 2;
+                    return json;
+                
                 }
             }
         }

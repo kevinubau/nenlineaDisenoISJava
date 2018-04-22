@@ -26,12 +26,13 @@ public class Nenlinea {
     public String tipoJuego;
     public String dificultad;
     public int turno;
+    public int cantFichasParaGanar;
     
     
     public Nenlinea() {
     }
 
-    public Nenlinea(String descrip, String id, String jugador1, String jugador2, String tam, Ficha[][] matriz, int jugadaX, int jugadaY, int gana, ArrayList<String> chat, String tipoJuego, String dificultad, int turno) {
+    public Nenlinea(String descrip, String id, String jugador1, String jugador2, String tam, Ficha[][] matriz, int jugadaX, int jugadaY, int gana, ArrayList<String> chat, String tipoJuego, String dificultad, int turno, int cantFichasParaGanar) {
         this.descrip = descrip;
         this.id = id;
         this.jugador1 = jugador1;
@@ -44,27 +45,9 @@ public class Nenlinea {
         this.chat = chat;
         this.tipoJuego = tipoJuego;
         this.dificultad = dificultad;
-        this.turno=1;
+        this.turno = turno;
+        this.cantFichasParaGanar = cantFichasParaGanar;
     }
-
-    public String getTipoJuego() {
-        return tipoJuego;
-    }
-
-    public String getDificultad() {
-        return dificultad;
-    }
-
-    public void setTipoJuego(String tipoJuego) {
-        this.tipoJuego = tipoJuego;
-    }
-
-    public void setDificultad(String dificultad) {
-        this.dificultad = dificultad;
-    }
-        
-    
-    
 
     public void setDescrip(String descrip) {
         this.descrip = descrip;
@@ -102,16 +85,28 @@ public class Nenlinea {
         this.gana = gana;
     }
 
+    public void setChat(ArrayList<String> chat) {
+        this.chat = chat;
+    }
+
+    public void setTipoJuego(String tipoJuego) {
+        this.tipoJuego = tipoJuego;
+    }
+
+    public void setDificultad(String dificultad) {
+        this.dificultad = dificultad;
+    }
 
     public void setTurno(int turno) {
         this.turno = turno;
     }
 
-  
-
-    public int getTurno() {
-        return turno;
+    public void setCantFichasParaGanar(int cantFichasParaGanar) {
+        this.cantFichasParaGanar = cantFichasParaGanar;
     }
+
+    
+    
     public String getDescrip() {
         return descrip;
     }
@@ -152,20 +147,22 @@ public class Nenlinea {
         return chat;
     }
 
-    public void setChat(ArrayList<String> chat) {
-        this.chat = chat;
+    public String getTipoJuego() {
+        return tipoJuego;
     }
 
-    
+    public String getDificultad() {
+        return dificultad;
+    }
+
+    public int getTurno() {
+        return turno;
+    }
+
+    public int getCantFichasParaGanar() {
+        return cantFichasParaGanar;
+    }
     
     
 
-    
-        
-        
-        
-    
-    
-    
-    
 }
