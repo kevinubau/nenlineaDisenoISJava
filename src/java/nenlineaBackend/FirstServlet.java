@@ -5,15 +5,11 @@
  */
 package nenlineaBackend;
 import com.google.gson.Gson;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.sql.Connection;
-import java.sql.ResultSet;
+import java.io.PrintWriter; 
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -29,8 +25,8 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FirstServlet extends HttpServlet {
     
-    static ArrayList<HttpServlet> solicitudes;
     static ArrayList<Nenlinea> juegos = new ArrayList();
+    
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -39,29 +35,26 @@ public class FirstServlet extends HttpServlet {
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
-     * @throws java.sql.SQLException
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
-        
-        
-        
-        
         verificarJuego();
-        System.out.println(" //////////////////////////////////////////////////////////////////");
+        
         response.setContentType("text/plain;charset=UTF-8");
+        
         try (PrintWriter out = response.getWriter()) {
            
-            System.out.println("========================================");
-            System.out.println(Arrays.toString(juegos.toArray()));
-            System.out.println("========================================");
+            
 
             try (BufferedReader input = new BufferedReader(new InputStreamReader(request.getInputStream()))) {
                 String line;
                 line = input.readLine();
-                System.out.println("? "+line);
                 
-
+                
+                System.out.println(" REQUEST: "+line);
+                //System.out.println(convertUTF8toISO(line));
+                line = convertUTF8toISO(line);
+                //System.out.println("REQUEST AFTER: "+line);
                 if(line == null){
                     System.out.println("request is null!!");
                     
@@ -69,11 +62,9 @@ public class FirstServlet extends HttpServlet {
                 
                 else if(line.equals("listaJuegos")){
                     
-                    System.out.println(" SOLICITUD DE LISTA DE JUEGOS!!");
+                    //System.out.println("SOLICITUD DE LISTA DE JUEGOS!!");
                     out.println(Arrays.toString(postListaJuegos()));
-                }
-                //verificarJugador2EnJuego
-                
+                }             
                
                 
                 else{
@@ -83,45 +74,53 @@ public class FirstServlet extends HttpServlet {
                     
                     if(obj.descrip.equals("aceptar")){
                         
-                        System.out.println("  ACEPTAR JUEGO");
+                        //System.out.println("ACEPTAR JUEGO");
                         
                         out.println(postBuscarJuego(obj));
                         String json = gson.toJson(postBuscarJuego(obj));
-                        System.out.println("RESPONSE ACEPTAR: "+json);
+                        //System.out.println("RESPONSE ACEPTAR: "+json);
+                        
+                    }
+                    
+                    else if(obj.descrip.equals("guardar")){
+
+                        //buscar juego y enviarlo por parametro a funcion insert
+                        System.out.println(" GUARDAR JUEGO");
+                        String juego = verificarJugador2EnJuego(obj);
+                        Nenlinea juegoOBJ = retornarJuego(obj);
+                        enviarInsert(juegoOBJ.id, juegoOBJ.jugador1, juegoOBJ.jugador2, juego);
+                        out.println(verificarJugador2EnJuego(obj));
                         
                     }
                     
                     else if(obj.descrip.equals("verificar")){
                         
-                        System.out.println("  VERIFICAR JUEGO");
+                        //System.out.println("VERIFICAR JUEGO");
                         
                         out.println(verificarJugador2EnJuego(obj));
                         String json = gson.toJson(verificarJugador2EnJuego(obj));
-                        System.out.println("RESPONSE VERIFICAR: "+json);
+                        //System.out.println("RESPONSE VERIFICAR: "+json);
                     }
                     
-                    else if(obj.descrip.equals("actualizar")){
+                    else if(obj.descrip.equals("actualizar")){ 
                         
-                        System.out.println("  ACTUALIZAR JUEGO");
+                        //System.out.println("ACTUALIZAR JUEGO");
                         
                         out.println(actualizarDash(obj));
                         String json = gson.toJson(actualizarDash(obj));
-                        System.out.println("RESPONSE ACTUALIZAR: "+json);
+                        //System.out.println("RESPONSE ACTUALIZAR: "+json);
                     }
                     
                     else if(obj.descrip.equals("actualizarChat")){
                         
-                        System.out.println("  ACTUALIZAR CHAT");
+                        //System.out.println("ACTUALIZAR CHAT");
                         
                         out.println(actualizarChat(obj));
-                        //String json = gson.toJson(actualizarChat(obj));
-                        //System.out.println("RESPONSE ACTUALIZARCHAT: "+json);
+                        
                     }
                     
                     else if(obj.matriz == null){
-                        
-                        //obj.setMatriz(generarMatrizInicialPost(obj.tam));
-                        
+
                         String id = String.valueOf(juegos.size()+1);
                         String jugador1 = obj.jugador1;                        
                         String tam = obj.tam;
@@ -130,6 +129,7 @@ public class FirstServlet extends HttpServlet {
                         String tipoJuego= "usuario";
                         String jugador2 = "";
                         String dificultad="";
+                        int cantFichasParaGanar = obj.cantFichasParaGanar;
                         
                         if(!obj.tipoJuego.equals("usuario")){
                             
@@ -139,7 +139,7 @@ public class FirstServlet extends HttpServlet {
                         
                         }
                         
-                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, jugador2, tam, null, 0, 0, 0, chatPrueba, tipoJuego, dificultad, 1);
+                        Nenlinea juego = new Nenlinea("nenlinea",  id, jugador1, jugador2, tam, null, 0, 0, 0, chatPrueba, tipoJuego, dificultad, 1, cantFichasParaGanar);
                         
                         juego.setMatriz(generarMatrizInicialPost(obj.tam));
                         juego.setChat(chatPrueba);
@@ -148,34 +148,60 @@ public class FirstServlet extends HttpServlet {
                         String json = gson.toJson(juego);
                         System.out.println("RESPONSE CREAR: "+json);
                         out.println(json);
-                        
-                        /*System.out.println("parsead "+obj.jugador1);
-                        System.out.println("parsead "+obj.jugador2);
-                        System.out.println("parsead "+obj.matriz);
-                        System.out.println("parsead "+obj.tam);
-                        System.out.println("parsead "+obj.jugadaX);
-                        System.out.println("parsead "+obj.jugadaY);*/
+                     
                     }
                     else{
                         
-                        out.println(validarPOST(line));
+                        out.println(validarPOST(line)); //Validar una jugada.
                     }
                     
                  
                     
                 }
     
-                /*System.out.println("linea final: "+line);
-                System.out.println("linea final: "+request.getRemoteAddr());
-                System.out.println("linea final: "+request.getRemoteHost());
-                System.out.println("linea final: "+request.getRequestedSessionId());*/
+               
                 
             }
             
         }
     }
     
+    public void enviarInsert(String id, String j1, String j2, String juego) throws SQLException{
 
+            Conector con=new Conector();
+            con.Conectar();
+            con.insertarBD(id, j1, j2, juego);
+            Conector.viewTable();
+            
+   }
+    
+    public Nenlinea retornarJuego(Nenlinea req){
+      
+        for(Nenlinea juego : juegos) {
+            
+            if(juego.id.equals(req.id)){
+  
+                return juego;
+                
+            }
+            
+
+        }
+        return req;
+        
+      
+    } 
+   
+    public static String convertUTF8toISO(String str) {
+	String ret;
+	try {
+		ret = new String(str.getBytes("ISO-8859-1"), "UTF-8");
+	}
+	catch (java.io.UnsupportedEncodingException e) {
+		return null;
+	}
+	return ret;
+}
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -189,6 +215,7 @@ public class FirstServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         System.out.println("Solicitud GET");
         setAccessControlHeaders(response);
         PrintWriter writer = response.getWriter();
@@ -212,10 +239,9 @@ public class FirstServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        System.out.println("Solicitud POST");
+        
+        
         setAccessControlHeaders(response);
-        //PrintWriter writer = response.getWriter();
-        //writer.write("test response from myServlet");
         try {
             processRequest(request, response);
         } catch (SQLException ex) {
@@ -223,7 +249,8 @@ public class FirstServlet extends HttpServlet {
         }
         
     }
-
+    
+   
     /**
      * Returns a short description of the servlet.
      *
@@ -237,19 +264,8 @@ public class FirstServlet extends HttpServlet {
     private void setAccessControlHeaders(HttpServletResponse resp) {
       resp.setHeader("Access-Control-Allow-Origin", "*");
       resp.setHeader("Access-Control-Allow-Methods", "POST, GET");
+      
     }
-    public void enviarInsert() throws SQLException{
-       boolean bandera=false;
-        if (bandera==false){
-            
-            String idJuego="8";
-            String dato="eeee, eewefwe, qq, wefwef";
-            Conector con=new Conector();
-            con.Conectar();
-            con.insertarBD(idJuego,dato);
-            bandera=true;
-        }
-   }
     
     public Ficha[][] generarMatrizInicialPost(String n) {//Generar matriz inicial
         int a = Integer.parseInt(n);
@@ -266,35 +282,16 @@ public class FirstServlet extends HttpServlet {
 
             }   
         }
-            /*String[] chatPrueba = {"hola"};
-        Nenlinea juego = new Nenlinea("", "", "", "", "", matriz, -1, -1, 0, chatPrueba);
-        
-        Gson gson = new Gson();
-        String json = gson.toJson(juego);
-        return json;*/
+            
         return matriz;
 
     }
     
-    public boolean leerRequest(String n){
-        System.out.println("LEER REQUEST");
-        
-        try {
-            
-            int a = Integer.parseInt(n);
-            
-            
-        } catch (NumberFormatException e) {
-            System.out.println("No se pudo "+n);
-            return false;
-        }
-        
-        return true;
-    }
+
     
     public String postBuscarJuego(Nenlinea req){
         
-        //postListaJuegos();//llena dos juegos default
+        
         Gson gson = new Gson();
         String json = "";
         
@@ -319,7 +316,7 @@ public class FirstServlet extends HttpServlet {
     
     public String actualizarChat(Nenlinea req){
         
-        //postListaJuegos();//llena dos juegos default
+        
         Gson gson = new Gson();
         String json = "";
         
@@ -329,9 +326,6 @@ public class FirstServlet extends HttpServlet {
                 
                 
                 juego.chat.add(req.chat.get(req.chat.size()-1));
-                //System.out.println("========================================");
-                //System.out.println(Arrays.toString(juegos.toArray()));
-                //System.out.println("========================================");
                 json = gson.toJson(juego);
                 
                 return json;
@@ -346,16 +340,81 @@ public class FirstServlet extends HttpServlet {
       
     } 
     public int nivelFacil(int tam){
-        System.out.println("");
+        
         int numero1 = (int) (Math.random() * (tam-1));  //para ingresar ficha en una posicion random   
-        System.out.println("numero 1 random: "+ numero1);
-       
+              
         return numero1;
     }
     
+    public int nivelDificil(int jugadaY, int tamaño){
+        int contRest1=0;
+        int contRest2=0;
+        int contRest3=0;
+        int numeroX;
+        int numero1;
+        int mitadTamaño=tamaño/2;
+        numeroX=jugadaY;
+        
+        
+        
+        if(jugadaY<mitadTamaño-1){
+            numero1=jugadaY;
+            contRest1++;
+            if(contRest1>=2&&jugadaY<tamaño){
+            numero1=jugadaY+1;
+            }
+            
+        }
+        else if(jugadaY>mitadTamaño-1 && jugadaY<tamaño-1){
+            numero1=jugadaY+1;
+            contRest2++;
+            if(contRest2>=3){
+                numero1=jugadaY-1;
+            }
+        }
+        else{
+            //contRojas++;
+            numero1=jugadaY-1;
+            contRest3++;
+            if(contRest3>=2){
+                numero1=jugadaY;
+            }   
+        }
+        System.out.print("cont1: "+contRest1);
+        System.out.print("cont2: "+contRest2);
+        System.out.print("cont3: "+contRest3);
+        System.out.print("JugadaY: "+jugadaY);
+        System.out.println("NúmeroX: "+numeroX);
+        System.out.println("Número: "+numero1);
+        System.out.println("mitadTamaño: "+mitadTamaño);
+        System.out.println("Nivel dificil en uso");
+        return numero1;
+    }
+           
     public String actualizarDash(Nenlinea req){
         
-        //postListaJuegos();//llena dos juegos default
+        
+        Gson gson = new Gson();
+        String json = "";
+        
+        for(Nenlinea juego : juegos) {
+            
+            if(juego.id.equals(req.id)){
+ 
+                json = gson.toJson(juego);
+                return json;
+                
+            }
+            
+        }
+        return json;
+        
+      
+    } 
+    
+    public String verificarJugador2EnJuego(Nenlinea req){
+        
+        
         Gson gson = new Gson();
         String json = "";
         
@@ -365,31 +424,6 @@ public class FirstServlet extends HttpServlet {
                 
                 
                 
-                json = gson.toJson(juego);
-                return json;
-                
-            }
-            
-            
-
-        }
-        return json;
-        
-      
-    } 
-    
-    public String verificarJugador2EnJuego(Nenlinea req){
-        
-        //postListaJuegos();//llena dos juegos default
-        Gson gson = new Gson();
-        String json = "";
-        
-        for(Nenlinea juego : juegos) {
-            
-            if(juego.id == req.id){// && !"".equals(juego.jugador2)){
-                
-                
-                juego.jugador2="prueba";
                 json = gson.toJson(juego);
                 return json;
                 
@@ -405,48 +439,79 @@ public class FirstServlet extends HttpServlet {
     
     public String[] postListaJuegos(){
         
-        //juegos.removeAll(juegos);
-        /*String[] chatPrueba = {"hola"};
-        String id1 = String.valueOf(juegos.size());
-        String id2 = String.valueOf(juegos.size()+1);
-        Nenlinea j1 = new Nenlinea("1", id1, "kevin ubau", "", "5", null, 0, 0, 0, chatPrueba);
-        Nenlinea j2 = new Nenlinea("2", id2, "Juana papalotes", "", "6", null, 0, 0, 0, chatPrueba);
-        juegos.add(j1);
-        juegos.add(j2);
-        */
-        String[] array = new String[juegos.size()];
-        
+      
         int cont = 0;
-        Gson gson = new Gson();
-
-        
-        for (Nenlinea juego : juegos) {
-            String json = gson.toJson(juego);
-            array[cont] = json;
-            cont++;
-        }
-        System.out.println(Arrays.toString(array)+" ARRAY ");
-        return array;
-    }
-    public Ficha [][]turno2(Nenlinea mat){
-        System.out.println("ENtra a turno 2");
-        if (mat.jugador2.equals("PC")&&mat.turno==2){
-            System.out.println("Entra a if de turno 2");
-            mat.jugadaY=nivelFacil(Integer.parseInt(mat.tam));
-            return mat.matriz;
-        }
-        return mat.matriz;
-    }
-    public void verificarJuego(){
-        System.out.println("ENtra a verificarJuego");
-        Gson gson = new Gson();
-        String json="";
         for(Nenlinea juego : juegos) {
-            if (juego.jugador2.equals("PC") &&juego.turno==2){
+            if("".equals(juego.jugador2)){
+                cont++;
+            }
+        }
+        String[] array = new String[cont];
+        
+        
+        Gson gson = new Gson();
+        
+        cont =0;
+        //System.out.println(Arrays.toString(array)+" ARRAY1 ");
+        for (Nenlinea juego : juegos) {
+            
+            if("".equals(juego.jugador2)){
+                
+                
+                String json = gson.toJson(juego);
+                array[cont] = json;
+                cont++;
+            }
+            
+        }
+        
+        
+        //System.out.println(Arrays.toString(array)+" ARRAY2 ");
+        
+        return array;
+    } 
+    public Ficha [][]turno2(Nenlinea obj){
+        
+        if (obj.jugador2.equals("PC")&&obj.turno==2&&obj.dificultad.equals("pcFacil")){
+            System.out.println("Entra a if de turno 2");
+            obj.jugadaY=nivelFacil(Integer.parseInt(obj.tam));
+            return obj.matriz;
+        }
+        else if (obj.jugador2.equals("PC")&&obj.turno==2&&obj.dificultad.equals("pcDificil")){
+            System.out.println("Entra a dificil");
+            obj.jugadaY=nivelDificil(obj.jugadaY, Integer.parseInt(obj.tam));
+            //int tam, Ficha[][] matriz, int cantFichasParaGanar, int turno
+            //mat.jugadaY=nivelDificil(Integer.parseInt(mat.tam));
+            return obj.matriz;
+        }
+        else if(obj.jugador2.equals("PC")&&obj.turno==2&&obj.dificultad.equals("pcIntermedio")){
+            int num = (int) (Math.random() * (2));
+            System.out.println("random :"+ num);
+            if (num==0){
+                obj.jugadaY=nivelFacil(Integer.parseInt(obj.tam));
+                return obj.matriz;
+            }
+            else{
+               // obj.jugadaY=nivelDificil(obj.jugadaX, obj.jugadaY, Integer.parseInt(obj.tam));
+                return obj.matriz;
+            }
+        
+        }
+        return obj.matriz;
+    }
+    
+    
+    public void verificarJuego(){//verificar si el jugado2 es la PC
+        
+        Gson gson = new Gson();
+        String json;
+        for(Nenlinea juego : juegos) {
+            
+            if (juego.jugador2.equals("PC") && juego.turno==2){
                 juego.matriz=turno2(juego);
                 json = gson.toJson(juego);
                 validarPOST(json);
-                //String json = gson.toJson(obj);
+                
         
             }
             
@@ -458,37 +523,36 @@ public class FirstServlet extends HttpServlet {
     
         Gson gson = new Gson();
         Nenlinea obj = gson.fromJson(n, Nenlinea.class);//pasar el string json a objeto de la clase Nenlinea 
-        System.out.println("Tipo juego   "+obj.tipoJuego);
-        System.out.println("dificultad "+ obj.dificultad);
-        int tam = obj.matriz.length;
-        //obj.matriz= turno2(obj, tam);
-        //if (obj.tipoJuego.equals("PC") && obj.turno==2){ //&& (obj.dificultad.equals("pcFacil"))){
-        //    obj.jugadaY=nivelFacil(tam);
-        //}
-        obj.matriz = votearMatrizHaciaOriginal(tam, colocarFichasAlFondo(girarMatriz(tam, obj.matriz), obj.jugadaY,obj.turno));//para colocar fichas al fondo
+        //System.out.println("Tipo juego   "+obj.tipoJuego);
+        //System.out.println("dificultad "+ obj.dificultad);
+        int tam = obj.matriz.length;     
+        obj.matriz = votearMatrizHaciaOriginal(tam, colocarFichasAlFondo(girarMatriz(tam, obj.matriz), obj.jugadaY,obj.turno));//para colocar fichas al fondo      
         
-        obj.matriz = votearMatrizHaciaOriginal(tam, vertical(tam, girarMatriz(tam, obj.matriz)));//para verificar si hay gane en vertical
-        
-        
-        
+
+        //VERTICAL **
+        obj.matriz = votearMatrizHaciaOriginal(tam, vertical(tam, girarMatriz(tam, obj.matriz), obj.cantFichasParaGanar, obj.turno));//para verificar si hay gane en vertical
+
         //HORIZONTAL **
-        obj.matriz = vertical(tam, obj.matriz);//para verificar si hay gane en horizontal last,08:20AM 19/03
+        obj.matriz = vertical(tam, obj.matriz, obj.cantFichasParaGanar, obj.turno);//para verificar si hay gane en horizontal last,08:20AM 19/03
 
-
-        obj.matriz = diagonalSuperior(3, obj.matriz);//validar diagonal superior normal /
-        obj.matriz = diagonalInferior(3, obj.matriz);//validar diagonal inferior normal /
-       
-        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalSuperior(3, girarMatriz(tam, obj.matriz))); //validar diagonal superior inversa \
-        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalInferior(3, girarMatriz(tam, obj.matriz))); //validar diagonal inferior inversa \
+        //DIAGONALES **
+        obj.matriz = diagonalSuperior(obj.cantFichasParaGanar, obj.matriz, obj.turno);//validar diagonal superior normal /
+        obj.matriz = diagonalInferior(obj.cantFichasParaGanar, obj.matriz, obj.turno);//validar diagonal inferior normal /
+        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalSuperior(obj.cantFichasParaGanar, girarMatriz(tam, obj.matriz), obj.turno)); //validar diagonal superior inversa \
+        obj.matriz = votearMatrizHaciaOriginal(tam, diagonalInferior(obj.cantFichasParaGanar, girarMatriz(tam, obj.matriz), obj.turno)); //validar diagonal inferior inversa \
         
+        //VALIDAR GANE **
         obj= verificarGane(obj);// si encuentra al menos una ficha con el color de gane, entonces cambiara a 1 el atributo .gana en el json
         
+        //SWITCH TURNOS
         if (obj.turno==1){
             
             obj.turno=2;
         }else{
             obj.turno=1;
         }
+        
+        //ACTUALIZAR JUEGO
         for(Nenlinea juego : juegos) {
             
             if(juego.id.equals(obj.id)){
@@ -497,7 +561,7 @@ public class FirstServlet extends HttpServlet {
                 juego.matriz = obj.matriz;
                 juego.turno=obj.turno;
                 juego.jugadaY=obj.jugadaY;
-                //juego.chat=obj.chat;
+                
                 break;
                 
             }
@@ -597,8 +661,7 @@ public class FirstServlet extends HttpServlet {
     
     }  
     
-    public Ficha[][] vertical(int tam, Ficha[][] matriz){
-//        System.out.println(" VERTICAL XXXXXXXXXXXXXXXXXX");
+    public Ficha[][] vertical(int tam, Ficha[][] matriz, int cantFichasParaGanar, int turno){
         int cont = 0;
         ArrayList<Ficha> fichasGanadoras = new ArrayList();
         for(Ficha[] fila:matriz){
@@ -606,22 +669,24 @@ public class FirstServlet extends HttpServlet {
          
 
             for(Ficha ficha:fila){
-                if(ficha.status==2){
+                if(ficha.status==turno){//2
                     cont++;
+                    
                     
                     fichasGanadoras.add(ficha);
                     
                     
                 }
+                
                 else{
                     cont=0;
                     fichasGanadoras.clear();
                     
                 }
                 
-                if(cont == 4){
+                if(cont == cantFichasParaGanar){
                     for(Ficha fich:fichasGanadoras){
-                        fich.status = 4;
+                        fich.status = turno+2;//4
                         for(Ficha[] fi:matriz){
                             
                             for(Ficha f:fi){
@@ -644,30 +709,30 @@ public class FirstServlet extends HttpServlet {
         return matriz;
     }
     
-    public Ficha[][] auxDiagonal(int contGane, int fichasParaGanar, ArrayList<Ficha> listaFichas, Ficha[][] matriz){
+    public Ficha[][] auxDiagonal(int contGane, int fichasParaGanar, ArrayList<Ficha> listaFichas, Ficha[][] matriz, int turno){
         
         if(contGane == fichasParaGanar){
-            
-                 
-                    for(Ficha fich:listaFichas){
-                        fich.status = 4;
-                        for(Ficha[] fi:matriz){
+
+            for(Ficha fich:listaFichas){
+                fich.status = turno+2;//ej si es 1(1+2=3 [gana el jugador 1])
+                for(Ficha[] fi:matriz){
+
+                    for(Ficha f:fi){
                             
-                            for(Ficha f:fi){
-                                
-                                if(fich.posicionX == f.posicionX && fich.posicionY == f.posicionY){
-                                    f.status = fich.status;
-                                }
-                            }
+                        if(fich.posicionX == f.posicionX && fich.posicionY == f.posicionY){
+                            f.status = fich.status;
                         }
                     }
-                    return matriz;
+                }
+            }
+            return matriz;
              
-             }
+        }
+        
         return matriz;
     }
         
-    public Ficha[][] diagonalSuperior(int fichasParaGanar, Ficha[][] matriz){
+    public Ficha[][] diagonalSuperior(int fichasParaGanar, Ficha[][] matriz, int turno){
         int tam = matriz.length;
         int posX = 0;
         int posY;
@@ -684,7 +749,7 @@ public class FirstServlet extends HttpServlet {
             
             while (auxPosX >= 0) {
                 
-                if(matriz[auxPosX][posY].status == 2)
+                if(matriz[auxPosX][posY].status == turno)
                 {
                     contFichas++;
                     listaFichas.add(matriz[auxPosX][posY]);
@@ -698,11 +763,11 @@ public class FirstServlet extends HttpServlet {
                             
                 }
                 
-                if(contFichas == 3)
+                if(contFichas == fichasParaGanar)
                 {
                  
 
-                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz);
+                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz, turno);
                     
                 }
                 posY++;
@@ -717,7 +782,7 @@ public class FirstServlet extends HttpServlet {
         
     }
     
-    public Ficha[][] diagonalInferior(int fichasParaGanar, Ficha[][] matriz ){
+    public Ficha[][] diagonalInferior(int fichasParaGanar, Ficha[][] matriz, int turno){
         int tam = matriz.length;
         ArrayList<Ficha> listaFichas = new ArrayList();
         int posX = tam-1;
@@ -738,7 +803,7 @@ public class FirstServlet extends HttpServlet {
             
             while (auxPosY <= tam-1) {
                 
-                if(matriz[auxPosX][auxPosY].status == 2)
+                if(matriz[auxPosX][auxPosY].status == turno)//2
                 {
                     listaFichas.add(matriz[auxPosX][auxPosY]);
                     contFichas++;
@@ -751,10 +816,10 @@ public class FirstServlet extends HttpServlet {
                     listaFichas.clear();
                 }
                 
-                if(contFichas == 3)
+                if(contFichas == fichasParaGanar)
                 {
                    
-                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz);
+                    return auxDiagonal(contFichas, fichasParaGanar, listaFichas, matriz, turno);
                     
                 }
                 auxPosY++;
@@ -773,13 +838,15 @@ public class FirstServlet extends HttpServlet {
           
 
             for(Ficha ficha:fila){
-                if(ficha.status==3 || ficha.status==4){
-                    json.gana=2;//esto debe ser una variable y no una constante
+                if(ficha.status==3){
+                    json.gana=1;//esto debe ser una variable y no una constante
                     return json;
-                    
-                    
-                    
-                    
+
+                }
+                else if(ficha.status == 4){
+                    json.gana = 2;
+                    return json;
+                
                 }
             }
         }

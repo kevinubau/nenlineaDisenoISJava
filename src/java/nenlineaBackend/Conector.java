@@ -18,17 +18,23 @@ import java.util.logging.Logger;
  * @author Emilio
  */
 public class Conector {
-    Connection conector;
     
-    public Conector(){
-        this.conector=conector;
+    public Connection conector;
+
+    public Conector() {
     }
+    
+    
+    public Conector(Connection conector) {
+        this.conector = conector;
+    }
+    
     
     public void Conectar() throws SQLException{
         String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
              String user ="postgres";
              String pass = "12345";
-             String name="ssd, Azofeifa, auron, 1234";
+             
              
               try {
                   Class.forName("org.postgresql.Driver");
@@ -43,7 +49,7 @@ public class Conector {
                   ResultSet result = st.executeQuery(sql);
                   while(result.next()) {
                       String usuario = result.getString("tablero");
-                      //String clave = result.getString("cla_usu");
+                      
                       System.out.println("User: "+usuario);
                   }
                   result.close();
@@ -54,47 +60,79 @@ public class Conector {
               }
     }
         
-//        String cadenaConexion= "jdbc:posgresql://localhost:5432/nenlinea";
-//        String usuario="postgres";
-//        String pass="12345";
-//        String driverClassName = "org.postgresql.Driver"; 
-////        
-//        
-//        //String cadenaDriver="org.posgresql.Driver";
-//        String consultaSQL="SELECT * FROM juego";
-//        System.out.println("Select a la base: "+consultaSQL);
-//        
-//        try{
-//            System.out.println("try");
-//            Class.forName(driverClassName);
-//            System.out.println("Driver");
-//            this.conector=DriverManager.getConnection(cadenaConexion, usuario, pass);
-//            System.out.println("Conexion correcta");
-//        
-//        }catch(SQLException ex){
-//            
-//        }catch (ClassNotFoundException ex) {
-//            //Logger.getLogger(Conector.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        }
         
     public Connection getConexion(){
         return this.conector;
                
     }
-    public void insertarBD(String id,String dato) throws SQLException{
+    public void insertarBD(String id, String j1, String j2, String dato) throws SQLException{
+        System.out.println(" INSERTAR_DB");
         String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
         String user ="postgres";
         String pass = "12345";
-        //String dato="Kepa, Izabiz, kep, ki12";
+        
         Connection conex = DriverManager.getConnection(cadena,user,pass);
-        java.sql.Statement st = conex.createStatement();
-                  
-                  
+        
         Statement consulta = (Statement) conex.createStatement();
-        consulta.executeUpdate("insert into juego values('"+id+"','{"+dato+"}')");
-//        consulta.executeUpdate("insert into juego values('id+","+{" + dato +"}')");
-//                                ('1','{Emilio, Bermudez, siuuu, e10000}');
+        consulta.executeUpdate("insert into juego values('"+id+"', '"+j1+"', '"+j2+"', '"+dato+"')");
+
+    }
+    
+    
+    public String consultarDB(String id) throws SQLException, ClassNotFoundException{
+        
+        System.out.println("CONSULTAR DB");
+        String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
+        String user ="postgres";
+        String pass = "12345";
+        
+        String juego="";
+
+        try (Connection conex = DriverManager.getConnection(cadena,user,pass); java.sql.Statement st = conex.createStatement()) {
+            
+            Statement consulta = (Statement) conex.createStatement();
+            
+            String sql ="SELECT * FROM juego WHERE id='"+id+"'";
+            try (ResultSet result = st.executeQuery(sql)) {
+                while(result.next()) {
+                    String usuario = result.getString("tablero");
+                    
+                    System.out.println("User: "+usuario);
+                    return usuario;
+                }
+            }
+        }
+        return juego;
+    
+    }
+    
+    
+    
+    public static String viewTable() throws SQLException {
+        
+        System.out.println(" VIEW ROWS");
+        String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
+        String user ="postgres";
+        String pass = "12345";
+
+        Connection con = DriverManager.getConnection(cadena,user,pass);
+        String query = "select tablero from juego WHERE id='1'";
+
+        try (Statement stmt = con.createStatement()) {
+
+            ResultSet rs = stmt.executeQuery(query);
+
+            while (rs.next()) {
+                String resultado = rs.getString("tablero");
+
+                System.out.println(resultado);
+                return resultado;
+            }
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+        
+        return cadena;
     }
     
     
