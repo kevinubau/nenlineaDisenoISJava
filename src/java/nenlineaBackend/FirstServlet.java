@@ -64,7 +64,9 @@ public class FirstServlet extends HttpServlet {
                     
                     //System.out.println("SOLICITUD DE LISTA DE JUEGOS!!");
                     out.println(Arrays.toString(postListaJuegos()));
-                }             
+                }  
+                
+                
                
                 
                 else{
@@ -82,8 +84,26 @@ public class FirstServlet extends HttpServlet {
                         
                     }
                     
+                    else if(obj.descrip.equals("reanudar")){
+                        
+                        //System.out.println("ACEPTAR JUEGO");
+                        String[] arr = postListaJuegosPausados(obj.jugador1);
+                        Nenlinea game = buscarJuegoPausadoParaReanudar(arr, obj.id);
+                        juegos.add(game);
+                        out.println(verificarJugador2EnJuego(game));
+                        //System.out.println("RESPONSE ACEPTAR: "+json);
+                        
+                    }
+                    
+                    else if(obj.descrip.equals("juegosPausados")){
+                    
+                        System.out.println("SOLICITUD DE LISTA DE JUEGOS PAUSADOS!!");
+                        out.println(Arrays.toString(postListaJuegosPausados(obj.jugador1)));
+                        
+                    }
+                    
                     else if(obj.descrip.equals("guardar")){
-
+                        
                         //buscar juego y enviarlo por parametro a funcion insert
                         System.out.println(" GUARDAR JUEGO");
                         String juego = verificarJugador2EnJuego(obj);
@@ -171,9 +191,26 @@ public class FirstServlet extends HttpServlet {
             Conector con=new Conector();
             con.Conectar();
             con.insertarBD(id, j1, j2, juego);
-            Conector.viewTable();
+            //Conector.viewTable();
             
-   }
+    }
+    
+    public Nenlinea buscarJuegoPausadoParaReanudar(String[] arrayJuegos, String id){
+        
+        
+        Gson gson = new Gson();
+                    
+        for (String juego : arrayJuegos) {
+            
+            Nenlinea obj = gson.fromJson(juego, Nenlinea.class);
+            if(obj.id.equals(id)){
+                return obj;
+            }
+        }
+        return null;
+    
+    }
+    
     
     public Nenlinea retornarJuego(Nenlinea req){
       
@@ -376,9 +413,7 @@ public class FirstServlet extends HttpServlet {
         for(Nenlinea juego : juegos) {
             
             if(juego.id.equals(req.id)){
-                
-                
-                
+  
                 json = gson.toJson(juego);
                 return json;
                 
@@ -393,8 +428,7 @@ public class FirstServlet extends HttpServlet {
     } 
     
     public String[] postListaJuegos(){
-        
-      
+              
         int cont = 0;
         for(Nenlinea juego : juegos) {
             if("".equals(juego.jugador2)){
@@ -425,6 +459,17 @@ public class FirstServlet extends HttpServlet {
         
         return array;
     } 
+    
+    public String[] postListaJuegosPausados(String jugador) throws SQLException{
+        Conector con=new Conector();
+        con.Conectar();
+        
+        return Conector.viewTable(jugador);
+
+    }
+    
+    
+    
     public Ficha [][]turno2(Nenlinea obj){
         
         if (obj.jugador2.equals("PC")&&obj.turno==2){

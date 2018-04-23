@@ -79,7 +79,7 @@ public class Conector {
     }
     
     
-    public String consultarDB(String id) throws SQLException, ClassNotFoundException{
+    public String consultarDB(String jugador) throws SQLException, ClassNotFoundException{
         
         System.out.println("CONSULTAR DB");
         String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
@@ -92,13 +92,14 @@ public class Conector {
             
             Statement consulta = (Statement) conex.createStatement();
             
-            String sql ="SELECT * FROM juego WHERE id='"+id+"'";
+            String sql ="SELECT * FROM juego WHERE jugador1='"+jugador+"' OR jugador2='"+jugador+"'";
+            
             try (ResultSet result = st.executeQuery(sql)) {
                 while(result.next()) {
-                    String usuario = result.getString("tablero");
+                    String resultado = result.getString("tablero");
                     
-                    System.out.println("User: "+usuario);
-                    return usuario;
+                    System.out.println("User: "+resultado);
+                    return resultado;
                 }
             }
         }
@@ -108,31 +109,53 @@ public class Conector {
     
     
     
-    public static String viewTable() throws SQLException {
+    public static String[] viewTable(String jugador) throws SQLException {
         
         System.out.println(" VIEW ROWS");
         String cadena = "jdbc:postgresql://localhost:5432/nenlinea";
         String user ="postgres";
         String pass = "12345";
-
+            
+        //String jugador = "Kevin Ubau";
+        
         Connection con = DriverManager.getConnection(cadena,user,pass);
-        String query = "select tablero from juego WHERE id='1'";
+        String query ="SELECT * FROM juego WHERE jugador1='"+jugador+"' OR jugador2='"+jugador+"'";
 
+        
+        String[] listaResultados;
+        
         try (Statement stmt = con.createStatement()) {
 
             ResultSet rs = stmt.executeQuery(query);
-
+            int cont = 0;
+            
             while (rs.next()) {
                 String resultado = rs.getString("tablero");
 
-                System.out.println(resultado);
-                return resultado;
+                System.out.println("RES "+resultado);
+                cont++;
             }
+            
+            rs = stmt.executeQuery(query);
+           
+            listaResultados = new String[cont];
+            cont = 0;
+            while (rs.next()) {
+                String resultado = rs.getString("tablero");
+
+                System.out.println("RES2 "+resultado);
+                listaResultados[cont] = resultado;
+                cont++;
+            }
+            
+            return listaResultados;
+            
+            
         } catch (SQLException e) {
             System.out.println(e);
         }
         
-        return cadena;
+        return null;
     }
     
     
