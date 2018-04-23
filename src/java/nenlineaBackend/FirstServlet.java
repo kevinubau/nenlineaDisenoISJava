@@ -9,8 +9,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter; 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +37,7 @@ public class FirstServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, SQLException {
         verificarJuego();
         
         response.setContentType("text/plain;charset=UTF-8");
@@ -48,7 +51,7 @@ public class FirstServlet extends HttpServlet {
                 line = input.readLine();
                 
                 
-                //System.out.println(" REQUEST: "+line);
+                System.out.println(" REQUEST: "+line);
                 //System.out.println(convertUTF8toISO(line));
                 line = convertUTF8toISO(line);
                 //System.out.println("REQUEST AFTER: "+line);
@@ -79,6 +82,17 @@ public class FirstServlet extends HttpServlet {
                         
                     }
                     
+                    else if(obj.descrip.equals("guardar")){
+
+                        //buscar juego y enviarlo por parametro a funcion insert
+                        System.out.println(" GUARDAR JUEGO");
+                        String juego = verificarJugador2EnJuego(obj);
+                        Nenlinea juegoOBJ = retornarJuego(obj);
+                        enviarInsert(juegoOBJ.id, juegoOBJ.jugador1, juegoOBJ.jugador2, juego);
+                        out.println(verificarJugador2EnJuego(obj));
+                        
+                    }
+                    
                     else if(obj.descrip.equals("verificar")){
                         
                         //System.out.println("VERIFICAR JUEGO");
@@ -88,7 +102,7 @@ public class FirstServlet extends HttpServlet {
                         //System.out.println("RESPONSE VERIFICAR: "+json);
                     }
                     
-                    else if(obj.descrip.equals("actualizar")){
+                    else if(obj.descrip.equals("actualizar")){ 
                         
                         //System.out.println("ACTUALIZAR JUEGO");
                         
@@ -152,9 +166,34 @@ public class FirstServlet extends HttpServlet {
         }
     }
     
+    public void enviarInsert(String id, String j1, String j2, String juego) throws SQLException{
+
+            Conector con=new Conector();
+            con.Conectar();
+            con.insertarBD(id, j1, j2, juego);
+            Conector.viewTable();
+            
+   }
     
+    public Nenlinea retornarJuego(Nenlinea req){
+      
+        for(Nenlinea juego : juegos) {
+            
+            if(juego.id.equals(req.id)){
+  
+                return juego;
+                
+            }
+            
+
+        }
+        return req;
+        
+      
+    } 
+   
     public static String convertUTF8toISO(String str) {
-	String ret = null;
+	String ret;
 	try {
 		ret = new String(str.getBytes("ISO-8859-1"), "UTF-8");
 	}
@@ -176,11 +215,16 @@ public class FirstServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         System.out.println("Solicitud GET");
         setAccessControlHeaders(response);
         PrintWriter writer = response.getWriter();
         writer.write("test response from myServlet");
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (SQLException ex) {
+            Logger.getLogger(FirstServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
 
@@ -198,7 +242,11 @@ public class FirstServlet extends HttpServlet {
         
         
         setAccessControlHeaders(response);
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (SQLException ex) {
+            Logger.getLogger(FirstServlet.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
     }
     
