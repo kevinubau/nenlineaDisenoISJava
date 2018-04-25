@@ -53,7 +53,10 @@ public class FirstServlet extends HttpServlet {
                 
                 System.out.println(" REQUEST: "+line);
                 //System.out.println(convertUTF8toISO(line));
-                line = convertUTF8toISO(line);
+                if(line!=null){
+                    line = convertUTF8toISO(line);
+                }
+                
                 //System.out.println("REQUEST AFTER: "+line);
                 if(line == null){
                     System.out.println("request is null!!");
@@ -669,7 +672,7 @@ public class FirstServlet extends HttpServlet {
                         for(Ficha[] fi:matriz){
                             
                             for(Ficha f:fi){
-                               
+                                
                                 if(fich.posicionX == f.posicionX && fich.posicionY == f.posicionY){
                                     f.status = fich.status;
                                 }
